@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       type: 'sqlite',
       database: 'polls.db',
       autoLoadEntities: true,
+      entities: [__dirname + '/entities/*.entity{.ts,.js}'],
       synchronize: true,
     }),
   ],
