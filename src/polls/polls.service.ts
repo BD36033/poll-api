@@ -1,0 +1,62 @@
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Choice } from 'src/entities/choice.entity';
+import { Poll } from 'src/entities/poll.entity';
+import { Repository } from 'typeorm';
+
+@Injectable()
+export class PollsService implements OnModuleInit {
+    constructor(
+        @InjectRepository(Poll) private pollRepo: Repository<Poll>,
+        @InjectRepository(Choice) private choiceRepo: Repository<Choice>,
+    ) { }
+
+    async onModuleInit() {
+        const count = await this.pollRepo.count();
+        if (count === 0) {
+            await this.firstPoll();
+        }
+    }
+
+    async firstPoll() {
+        const poll = this.pollRepo.create({
+            title: "Dites-vous pain au chocolat ou chocolatine ?",
+            description: "Team sud-ouest ou pas ?",
+            singleChoice: true,
+            choices: [
+                { text: "Pain au chocolat" },
+                { text: "Chocolatine" },
+            ],
+        });
+        return this.pollRepo.save(poll);
+    }
+
+    async findAll() {
+        return this.pollRepo.find({ relations: ['choices'] });
+    }
+
+
+    async createPoll(pollData: Partial<Poll>) {
+        const poll = this.pollRepo.create(pollData);
+        return this.pollRepo.save(poll);
+    }
+
+    async findOne(id: number) {
+        return this.pollRepo.findOne({
+            where: { id },
+            relations: ['choices']
+        });
+    }
+
+
+    async deletePoll(id: number) {
+        const poll = await this.pollRepo.findOne({
+            where: { id },
+            relations: ['choices']
+        });
+        if (!poll) return { message: 'Poll not found' };
+
+        await this.pollRepo.remove(poll);
+        return { message: 'Poll deleted successfully' };
+    }
+}
