@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Choice } from 'src/entities/choice.entity';
 import { Poll } from 'src/entities/poll.entity';
 import { Repository } from 'typeorm';
+import { CreatePollDto } from './dto/create-poll.dto';
 
 @Injectable()
 export class PollsService implements OnModuleInit {
@@ -36,46 +37,52 @@ export class PollsService implements OnModuleInit {
     }
 
 
-    async createPoll(pollData: Partial<Poll>) {
-        const poll = this.pollRepo.create(pollData);
-        return this.pollRepo.save(poll);
-    }
+    async createPoll(pollData: CreatePollDto) {
+            const choices = pollData.choices?.map(choice => this.choiceRepo.create(choice)) || [];
+            const poll = this.pollRepo.create({
+                title: pollData.title,
+                description: pollData.description,
+                singleChoice: pollData.singleChoice,
+                choices,
+            });
+            return this.pollRepo.save(poll);
+        }
 
     async findOne(id: number) {
-        return this.pollRepo.findOne({
-            where: { id },
-            relations: ['choices']
-        });
-    }
+            return this.pollRepo.findOne({
+                where: { id },
+                relations: ['choices']
+            });
+        }
 
     async deletePoll(id: number) {
-        const poll = await this.pollRepo.findOne({
-            where: { id },
-            relations: ['choices']
-        });
-        if (!poll) return { message: 'Poll not found' };
+            const poll = await this.pollRepo.findOne({
+                where: { id },
+                relations: ['choices']
+            });
+            if (!poll) return { message: 'Sondage introuvable' };
 
-        await this.pollRepo.remove(poll);
-        return { message: 'Poll deleted successfully' };
-    }
+            await this.pollRepo.remove(poll);
+            return { message: 'Sondage supprimé avec succès' };
+        }
 
     async vote(id: number, choiceIds: number[]) {
-        const poll = await this.pollRepo.findOne({
-            where: { id },
-            relations: ['choices']
-        });
-        if (!poll) return { message: 'Poll not found' };
+            const poll = await this.pollRepo.findOne({
+                where: { id },
+                relations: ['choices']
+            });
+            if (!poll) return { message: 'Sondage introuvable' };
 
-        if (poll.singleChoice && choiceIds.length > 1) {
-            throw new Error('Ce sondage ne permet qu\'un seul choix.');
-        }
-
-        for (const choice of poll.choices) {
-            if (choiceIds.includes(choice.id)) {
-                choice.votes += 1;
-                await this.choiceRepo.save(choice);
+            if (poll.singleChoice && choiceIds.length > 1) {
+                throw new Error('Ce sondage ne permet qu\'un seul choix.');
             }
+
+            for (const choice of poll.choices) {
+                if (choiceIds.includes(choice.id)) {
+                    choice.votes += 1;
+                    await this.choiceRepo.save(choice);
+                }
+            }
+            return { message: 'Vote enregistré avec succès' };
         }
-        return { message: 'Vote enregistré avec succès' };
     }
-}

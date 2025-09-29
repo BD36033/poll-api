@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { PollsService } from './polls.service';
 import { Poll } from 'src/entities/poll.entity';
+import { CreatePollDto } from './dto/create-poll.dto';
 
 @Controller('polls')
 export class PollsController {
@@ -16,12 +17,10 @@ export class PollsController {
     getAll() {
         return this.pollsService.findAll();
     }
-
     @Post()
-    createPoll(@Body() pollData: Partial<Poll>) {
-        return this.pollsService.createPoll(pollData);
+    createPoll(@Body() createPollDto: CreatePollDto) {
+        return this.pollsService.createPoll(createPollDto);
     }
-
 
     @Delete(':id')
     deleteOne(@Param('id') id: string) {
