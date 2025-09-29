@@ -48,7 +48,6 @@ export class PollsService implements OnModuleInit {
         });
     }
 
-
     async deletePoll(id: number) {
         const poll = await this.pollRepo.findOne({
             where: { id },
@@ -58,5 +57,25 @@ export class PollsService implements OnModuleInit {
 
         await this.pollRepo.remove(poll);
         return { message: 'Poll deleted successfully' };
+    }
+
+    async vote(id: number, choiceIds: number[]) {
+        const poll = await this.pollRepo.findOne({
+            where: { id },
+            relations: ['choices']
+        });
+        if (!poll) return { message: 'Poll not found' };
+
+        if (poll.singleChoice && choiceIds.length > 1) {
+            throw new Error('Ce sondage ne permet qu\'un seul choix.');
+        }
+
+        for (const choice of poll.choices) {
+            if (choiceIds.includes(choice.id)) {
+                choice.votes += 1;
+                await this.choiceRepo.save(choice);
+            }
+        }
+        return { message: 'Vote enregistré avec succès' };
     }
 }
