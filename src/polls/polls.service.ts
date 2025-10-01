@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Choice } from 'src/entities/choice.entity';
-import { Poll } from 'src/entities/poll.entity';
+import { Choice } from '../entities/choice.entity';
+import { Poll } from '../entities/poll.entity';
 import { Repository } from 'typeorm';
 import { CreatePollDto } from './dto/create-poll.dto';
 
@@ -67,6 +67,8 @@ export class PollsService implements OnModuleInit {
         }
 
     async vote(id: number, choiceIds: number[]) {
+        console.log('Vote reçu:', { id, choiceIds });
+
             const poll = await this.pollRepo.findOne({
                 where: { id },
                 relations: ['choices']

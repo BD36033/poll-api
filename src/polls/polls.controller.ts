@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { PollsService } from './polls.service';
-import { Poll } from 'src/entities/poll.entity';
+import { Poll } from '../entities/poll.entity';
 import { CreatePollDto } from './dto/create-poll.dto';
 
 @Controller('polls')
